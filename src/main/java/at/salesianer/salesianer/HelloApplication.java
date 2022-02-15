@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -42,11 +43,11 @@ public class HelloApplication extends Application {
     private Connection connection;
 
 
-
+    public static Pane pane2 = new Pane();
 
     @Override
     public void start(Stage stage) {
-        Image image =  new Image("C:/Users/Sebastian Muric/Desktop/Salesianer/Salesianer_Logo.png");
+        Image image =  new Image("C:/Users/Sebastian Muric/Documents/Salesianer/Salesianer_Logo.png");
         logoImage.setImage(image);
 
         window_layout = new VBox();
@@ -171,12 +172,14 @@ public class HelloApplication extends Application {
     }
 
     public static Pane getStarterLayoutForSimulationStage(){
-        Pane pane = new Pane();
         for (int i = 0; i < container_availableMachines.size(); i++) {
-            pane.getChildren().add(container_availableMachines.get(i).button);
+            if(!pane2.getChildren().contains(container_availableMachines.get(i).button)){
+                pane2.getChildren().add(container_availableMachines.get(i).button);
+            }
+
         }
-        pane.getChildren().add(Machine.line);
-        return pane;
+        pane2.getChildren().add(Machine.line);
+        return pane2;
     }
 
     public void handleStartSimulationButton() throws SQLException {
@@ -186,10 +189,10 @@ public class HelloApplication extends Application {
 
 
     public static void createStageForStartSimulationWindow(){
-        window_stage.hide();
         Stage stage = new Stage();
         window_scene = new Scene(getStarterLayoutForSimulationStage(), 920, 500);
         stage.setScene(window_scene);
+        window_stage.hide();
         stage.show();
     }
 

@@ -7,6 +7,7 @@ import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 
@@ -20,14 +21,14 @@ import java.util.Objects;
 
 public class Machine{
     public static List<ConnectionMachines> machineList = new ArrayList<>();
+    public static List<Button> buttonList = new ArrayList<>();
+    public static Button clicked = new Button();
     private String mCapacity;
     private String mName;
-    public double sceneX;
-    public double sceneY;
     public static Line line = new Line();
     Button button = new Button();
 
-    public Machine(String name, String capacity) throws SQLException {
+    public Machine(String name, String capacity){
         mName = name;
         mCapacity = capacity;
     }
@@ -35,28 +36,30 @@ public class Machine{
     public void handleMachinePropertiesButton(){
         button.setText(mName);
         button.setOnMouseClicked(eventForButton);
+        buttonList.add(button);
     }
 
     public void makeObjectDraggable(){
         button.setOnMouseDragged(e -> {
             button.setLayoutX(e.getSceneX() - 20);
-            sceneX = e.getSceneX();
             button.setLayoutY(e.getSceneY() - 10);
-            sceneY = e.getSceneY();
         });
     }
 
+
     public EventHandler<MouseEvent> eventForButton = new EventHandler<MouseEvent>() {
+
         public void handle(MouseEvent e) {
-            if (e.getClickCount() == 2) {
+            if (e.getClickCount() == 2 && machineList.size() < 1) {
                 try {
                     getAndAddDataBaseContent();
                 } catch (SQLException ex) {
                     ex.printStackTrace();
                 }
+            }
+            if(e.getClickCount() == 2){
                 createStageForAvailableConnectorMachine();
             }
-
         }
     };
 
@@ -75,8 +78,11 @@ public class Machine{
 
     public void createStageForAvailableConnectorMachine() {
         VBox vBox = new VBox();
+        clicked = this.button;
         for (int i = 0; i < machineList.size(); i++) {
-            vBox.getChildren().add(machineList.get(i).connectButton);
+            if(!this.button.getText().equals(machineList.get(i).connectButton.getText())){
+                vBox.getChildren().add(machineList.get(i).connectButton);
+            }
         }
         vBox.setSpacing(10);
         HelloApplication.window_scene = new Scene(vBox, 100, 100);
@@ -85,16 +91,17 @@ public class Machine{
         HelloApplication.window_stage.show();
     }
 
-    public void drawLine(){
-        if(getButton() != null){
-            line = new Line(sceneX, sceneY, getButton().getLayoutX(), getButton().getLayoutY());
+    public void drawLine() {
+        if (getButton() != null) {
+            line = new Line(clicked.getLayoutX() + 20, clicked.getLayoutY() + 10, getButton().getLayoutX() + 20, getButton().getLayoutY() + 10);
+            HelloApplication.window_stage.hide();
             HelloApplication.createStageForStartSimulationWindow();
         }
     }
 
     public Button getButton(){
         for (int i = 0; i < machineList.size(); i++) {
-            if(machineList.get(i).connectButton.getText().equals(HelloApplication.container_availableMachines.get(i).button.getText())){
+            if(ConnectionMachines.currentPressedButton.getText().equals(HelloApplication.container_availableMachines.get(i).button.getText())){
                 return HelloApplication.container_availableMachines.get(i).button;
             }
         }
