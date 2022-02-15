@@ -1,95 +1,55 @@
 package at.salesianer.salesianer;
-import at.salesianer.connection.ConnectionClass;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 public class HelloApplication extends Application {
 
     @FXML
-    private ImageView logoImage = new ImageView();
+    private final ImageView logoImage = new ImageView();
 
-    private Button object_button_addNewMachine = new Button();
-    private Button object_button_startSimulation = new Button();
+    private final Button object_button_addNewMachine = new Button();
+    private final Button object_button_startSimulation = new Button();
 
     public static Scene window_scene;
     private VBox window_layout;
     public static Stage window_stage;
 
-    public static List<Machine> container_availableMachines = new ArrayList<>();
-    private TextField container_machineName = new TextField();
-    private TextField container_machineCapacity = new TextField();
-
-    private ConnectionClass connection_connectionClass;
-    private Connection connection;
-
-
-    public static Pane pane2 = new Pane();
 
     @Override
     public void start(Stage stage) {
-        Image image =  new Image("C:/Users/Sebastian Muric/Documents/Salesianer/Salesianer_Logo.png");
-        logoImage.setImage(image);
-
         window_layout = new VBox();
         window_layout.getChildren().addAll(mergeBoxesForMainWindowLayout());
 
-        object_button_addNewMachine.setOnAction(e ->{
-            handleAddMachineButton();
-        });
-
-        object_button_startSimulation.setOnAction(e->{
-            try {
-                handleStartSimulationButton();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+        handleButtons();
 
         createStage(stage);
     }
 
-    EventHandler<ActionEvent> addMachineEvent = e -> {
-        try {
-            createAndAddMachineToDatabase(container_machineName.getText(), container_machineCapacity.getText());
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-    };
+    private void handleButtons(){
+        object_button_addNewMachine.setOnAction(e -> new AddMachineClass());
 
+        object_button_startSimulation.setOnAction(e-> new SimulationClass());
+    }
 
     private void createStage(Stage stage){
-        window_stage = getMainStage(stage);
+        window_stage = stage;
         window_scene = new Scene(window_layout, 920, 500);
         window_stage.setTitle("Salesianer");
         window_stage.setScene(window_scene);
         window_stage.show();
     }
 
-    public static Stage getMainStage(Stage stage){
-        return stage;
-    }
-
     public VBox mergeBoxesForMainWindowLayout(){
+        Image image =  new Image("C:/Users/Sebastian Muric/Documents/Salesianer/Salesianer_Logo.png");
+        logoImage.setImage(image);
+
         VBox hBox = new VBox();
         hBox.getChildren().add(logoImage);
         hBox.setAlignment(Pos.TOP_LEFT);
@@ -112,108 +72,5 @@ public class HelloApplication extends Application {
         return returnBox;
     }
 
-    public void handleAddMachineButton(){
-        createStageForNewMachineWindow();
-    }
 
-    public void createStageForNewMachineWindow(){
-        Stage stage = new Stage();
-        window_scene = new Scene(createLayoutForNewMachineStage(), 920, 500);
-        stage.setScene(window_scene);
-        window_stage.hide();
-        stage.show();
-    }
-
-    private VBox createLayoutForNewMachineStage(){
-        VBox hBox = new VBox();
-        hBox.getChildren().add(logoImage);
-        hBox.setAlignment(Pos.TOP_LEFT);
-
-        container_machineName.setPromptText("Maschinenenname");
-        container_machineName.setMinWidth(10);
-        TextField machineCapacity = new TextField();
-        machineCapacity.setPromptText("Maschinenkapazität");
-
-        VBox inputBox = new VBox();
-        inputBox.getChildren().addAll(container_machineName, container_machineCapacity);
-        inputBox.setSpacing(10);
-        Label label = new Label();
-
-        container_machineName.setOnAction(addMachineEvent);
-        container_machineCapacity.setOnAction(addMachineEvent);
-
-        VBox returnBox = new VBox();
-        returnBox.getChildren().addAll(hBox, inputBox, label);
-
-        return returnBox;
-    }
-    public void createAndAddMachineToDatabase(String name, String machineCapacity) throws SQLException {
-        Label label = new Label(name);
-        Label capacity = new Label(machineCapacity);
-
-        VBox vbox = new VBox();
-        vbox.getChildren().addAll(label, capacity);
-
-        addMachineToDataBase(name, machineCapacity);
-
-        window_scene = new Scene(vbox, 100, 100);
-        Stage stage = new Stage();
-        stage.setScene(window_scene);
-        stage.show();
-    }
-
-    public void addMachineToDataBase(String name, String machineCapacity) throws SQLException {
-        connection_connectionClass = new ConnectionClass();
-        connection = connection_connectionClass.getConnection();
-        String sqlName = "INSERT INTO SALESIANER (MachineName, MachineCapacity) VALUES('"+name+"', '"+machineCapacity+"')";
-        Statement statement = connection.createStatement();
-        statement.executeUpdate(sqlName);
-        connection.close();
-    }
-
-    public static Pane getStarterLayoutForSimulationStage(){
-        for (int i = 0; i < container_availableMachines.size(); i++) {
-            if(!pane2.getChildren().contains(container_availableMachines.get(i).button)){
-                pane2.getChildren().add(container_availableMachines.get(i).button);
-            }
-
-        }
-        pane2.getChildren().add(Machine.line);
-        return pane2;
-    }
-
-    public void handleStartSimulationButton() throws SQLException {
-        getContentFromDateBaseAndAddToContainer();
-        createStageForStartSimulationWindow();
-    }
-
-
-    public static void createStageForStartSimulationWindow(){
-        Stage stage = new Stage();
-        window_scene = new Scene(getStarterLayoutForSimulationStage(), 920, 500);
-        stage.setScene(window_scene);
-        window_stage.hide();
-        stage.show();
-    }
-
-    public void getContentFromDateBaseAndAddToContainer() throws SQLException {
-
-        for(Machine m : container_availableMachines){
-            container_availableMachines.remove(m);
-        }
-        connection_connectionClass = new ConnectionClass();
-        connection = connection_connectionClass.getConnection();
-        String sql = "SELECT MachineName, MachineCapacity FROM SALESIANER";
-        Statement statement = connection.createStatement();
-        ResultSet rs = statement.executeQuery(sql);
-        while (rs.next()) {
-            Machine machine = new Machine(rs.getString("MachineName"), rs.getString("MachineCapacity"));
-            machine.handleMachinePropertiesButton();
-            machine.makeObjectDraggable();
-            container_availableMachines.add(machine);
-
-        }
-        connection.close();
-        connection = null;
-    }
 }
